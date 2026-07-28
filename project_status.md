@@ -1,0 +1,2 @@
+- got partway through implementing account queries, then found out Enable Banking doesn't support the UK since we're not part of the EU </3 
+- pivoting to an app more based on using spending data to forecast future spending and point out past habits to change.
