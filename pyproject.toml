@@ -9,3 +9,9 @@ dependencies = [
     "pyjwt>=2.13.0",
     "requests>=2.34.2",
 ]
+
+[tool.uv.workspace]
+members = [
+    "backend/app",
+    "backend",
+]
