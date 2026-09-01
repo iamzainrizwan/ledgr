@@ -106,7 +106,7 @@ def post_transaction(
 
 
 def get_balance(
-    session: Session, account_name: str, *, include_children: bool
+    session: Session, account_name: str, *, include_children: bool = False
 ) -> Decimal:
     if not include_children:
         account = session.scalar(select(Account).where(Account.name == account_name))

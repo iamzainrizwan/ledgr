@@ -1,9 +1,12 @@
+import re
+from decimal import Decimal
+
 import pytest
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, func, select
 from sqlalchemy.orm import Session
 
-from ledger import get_or_create_account
-from models import Base
+from ledger import Posting, get_balance, get_or_create_account, post_transaction
+from models import Base, Transaction
 
 
 @pytest.fixture
@@ -18,6 +21,78 @@ def session():
 
 
 def test_accounts(session):
-    print(get_or_create_account(session, "Assets:Checking:HSBC"))
-    print(get_or_create_account(session, "Assets:Checking:HSBC"))
-    assert 0
+    account1 = get_or_create_account(session, "Assets:Checking:HSBC")
+    account2 = get_or_create_account(session, "Assets:Checking:HSBC")
+    assert account1.id == account2.id
+
+
+def test_balance_as_query(session):
+    account_checking = get_or_create_account(session, "Assets:Checking")
+
+    assert get_balance(session, account_checking.name) == Decimal("0")
+
+    post_transaction(
+        session,
+        [
+            Posting("Assets:Checking:HSBC", Decimal("20000")),
+            Posting("Equity:OpeningBalance", Decimal("-20000")),
+        ],
+    )
+
+    post_transaction(
+        session,
+        [
+            Posting("Assets:Checking:Revolut", Decimal("100")),
+            Posting("Equity:OpeningBalance", Decimal("-100")),
+        ],
+    )
+
+    post_transaction(
+        session,
+        [
+            Posting("Assets:Checking:HSBC", Decimal("-2000")),
+            Posting("Expenses:Rent", Decimal("2000")),
+        ],
+    )
+
+    post_transaction(
+        session,
+        [
+            Posting("Assets:Checking:Revolut", Decimal("-10")),
+            Posting("Expenses:Travel", Decimal("10")),
+        ],
+    )
+
+    assert get_balance(session, "Assets:Checking:Revolut") == Decimal("90")
+    assert get_balance(session, "Assets:Checking:HSBC") == Decimal("18000")
+    assert get_balance(session, "Assets:Checking") == Decimal("0")
+    assert get_balance(session, "Assets:Checking", include_children=True) == Decimal(
+        "18090"
+    )
+
+
+def test_idempotency(session):
+    tn1 = post_transaction(
+        session,
+        [
+            Posting("Assets:Checking:Revolut", Decimal("2000")),
+            Posting("Equity:OpeningBalance", Decimal("-2000")),
+        ],
+        external_id="test_id",
+    )
+
+    balance1 = get_balance(session, "Assets:Checking:Revolut")
+
+    tn2 = post_transaction(
+        session,
+        [
+            Posting("Assets:Checking:Revolut", Decimal("3000")),
+            Posting("Equity:OpeningBalance", Decimal("-3000")),
+        ],
+        external_id="test_id",
+    )
+
+    assert tn1.id == tn2.id
+    assert balance1 == get_balance(session, "Assets:Checking:Revolut")
+    count = session.scalar(select(func.count()).select_from(Transaction))
+    assert count == 1
