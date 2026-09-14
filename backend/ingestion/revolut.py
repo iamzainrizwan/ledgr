@@ -4,14 +4,16 @@ from pathlib import Path
 import pandas as pd
 from common import (
     ParsedTransaction,
-    check_cross_statement_continuity,
-    self_validate,
 )
 
 
 def parse_revolut_excel(path: Path) -> list[ParsedTransaction]:
     txns: list[ParsedTransaction] = []
-    df = pd.read_excel(path, sheet_name="in")
+    df = None
+    try:
+        df = pd.read_excel(path)
+    except Exception:
+        df = pd.read_csv(path)
     for _, r in df.iterrows():
         txns.append(
             ParsedTransaction(
