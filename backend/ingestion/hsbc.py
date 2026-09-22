@@ -4,7 +4,12 @@ from decimal import Decimal
 from pathlib import Path
 
 import pdfplumber
-from common import ParsedTransaction
+from common import (
+    ParsedStatement,
+    ParsedTransaction,
+    StatementParseError,
+    self_validate,
+)
 
 MONTHS = {
     "Jan": 1,
@@ -28,7 +33,7 @@ BALANCE_X0_MIN, BALANCE_X0_MAX = 520, 550
 
 def _decimal(text: str) -> Decimal | None:
     try:
-        return Decimal(text.replace(",", ""))
+        return Decimal(text.replace(",", "").replace("£", ""))
     except Exception:
         return None
 
@@ -78,16 +83,35 @@ def _classify_row(row) -> ClassifiedRow:
     return ClassifiedRow(date, amount, balance, description_words)
 
 
-def parse_hsbc_pdf(path: Path) -> list[ParsedTransaction]:
+def _extract_account_summary(words: list) -> tuple[Decimal | None, Decimal | None]:
+    SUMMARY_VALUE_X0_MIN = 500
+    SUMMARY_VALUE_X0_MAX = 550
+    candidates = [
+        w for w in words if SUMMARY_VALUE_X0_MIN <= w["x0"] <= SUMMARY_VALUE_X0_MAX
+    ]
+    opening_label = next((w for w in words if w["text"] == "OpeningBalance"), None)
+    closing_label = next((w for w in words if w["text"] == "ClosingBalance"), None)
+    if opening_label is None or closing_label is None:
+        raise StatementParseError("No account summary values found.")
+    opening_word = min(candidates, key=lambda w: abs(w["top"] - opening_label["top"]))
+    closing_word = min(candidates, key=lambda w: abs(w["top"] - closing_label["top"]))
+    return (_decimal(opening_word["text"]), _decimal(closing_word["text"]))
+
+
+def parse_hsbc_pdf(path: Path) -> ParsedStatement:
     txns: list[ParsedTransaction] = []
 
     capture_active = False
     current_date: str | None = None
-    running_balance: Decimal | None = None
-    pending_amount = Decimal("0")
+    closing_balance: Decimal | None = None
+    opening_balance: Decimal | None = None
     buffer: list[str] = []
 
     with pdfplumber.open(path) as pdf:
+        opening_balance, closing_balance = _extract_account_summary(
+            pdf.pages[0].extract_words()
+        )
+
         for page in pdf.pages:
             words = page.extract_words()
             if not words:
@@ -102,26 +126,12 @@ def parse_hsbc_pdf(path: Path) -> list[ParsedTransaction]:
             for row in rows:
                 row.sort(key=lambda w: w["x0"])
                 text = " ".join(w["text"] for w in row)
-
                 if "BALANCEBROUGHTFORWARD" in text:
                     capture_active = True
                     buffer = []
-                    pending_amount = Decimal("0")
-                    classified = _classify_row(row)
-                    if classified.balance is not None:
-                        running_balance = classified.balance
                     continue
 
                 if "BALANCECARRIEDFORWARD" in text:
-                    if buffer:
-                        raise ValueError(
-                            f"Unterminated transaction at section close: {' '.join(buffer)!r}"
-                        )
-                    if pending_amount != 0:
-                        raise ValueError(
-                            f"Unreconciled amount at section close on {current_date}: "
-                            f"{pending_amount} not matched against a printed balance"
-                        )
                     capture_active = False
                     continue
 
@@ -147,18 +157,19 @@ def parse_hsbc_pdf(path: Path) -> list[ParsedTransaction]:
                         )
                     )
                     buffer = []
-                    pending_amount += classified.amount
 
                     if classified.balance is not None:
-                        if running_balance is not None:
-                            expected = running_balance + pending_amount
-                            if expected != classified.balance:
-                                raise ValueError(
-                                    f"Balance mismatch on {current_date}: expected {expected}, "
-                                    f"statement shows {classified.balance} "
-                                    f"(last txn: {txns[-1].description!r})"
-                                )
-                        running_balance = classified.balance
                         pending_amount = Decimal("0")
 
-    return txns
+    if opening_balance is None or closing_balance is None:
+        raise StatementParseError("No opening or closing balance found.")
+    self_validate(
+        txns, opening_balance=opening_balance, closing_balance=closing_balance
+    )
+    statement: ParsedStatement = ParsedStatement(
+        opening_balance=opening_balance,
+        closing_balance=closing_balance,
+        transactions=txns,
+    )
+
+    return statement

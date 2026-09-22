@@ -3,5 +3,3 @@
 priv/
 
 *.pem
-
-backend/ingestion/test_ingestion.py

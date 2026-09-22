@@ -10,8 +10,20 @@ class ParsedTransaction(NamedTuple):
     amount: Decimal
 
 
+class ParsedStatement(NamedTuple):
+    """A summary of a statement after it has been parsed by a parser"""
+
+    opening_balance: Decimal
+    closing_balance: Decimal
+    transactions: list[ParsedTransaction]
+
+
 class StatementSelfCheckError(ValueError):
     """Parsed transactions don't match the statement's own opening/closing balance."""
+
+
+class StatementParseError(ValueError):
+    """Error that occurs when a parsed document does not have the expected shape."""
 
 
 def self_validate(
