@@ -2,12 +2,10 @@ from decimal import Decimal
 from pathlib import Path
 
 import pandas as pd
-from common import (
-    ParsedTransaction,
-)
+from common import ParsedStatement, ParsedTransaction, StatementParseError
 
 
-def parse_revolut_excel(path: Path) -> list[ParsedTransaction]:
+def parse_revolut_excel(path: Path) -> ParsedStatement:
     txns: list[ParsedTransaction] = []
     df = None
     try:
@@ -22,5 +20,10 @@ def parse_revolut_excel(path: Path) -> list[ParsedTransaction]:
                 amount=Decimal(str(r["Amount"])),
             )
         )
-
-    return txns
+    if df.empty:
+        raise StatementParseError("Statement contains no transactions.")
+    return ParsedStatement(
+        transactions=txns,
+        opening_balance=Decimal(df.iloc[0]["Balance"]),
+        closing_balance=Decimal(df.iloc[-1]["Balance"]),
+    )

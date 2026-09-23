@@ -149,6 +149,11 @@ def parse_hsbc_pdf(path: Path) -> ParsedStatement:
                 buffer.extend(classified.description_words)
 
                 if classified.amount is not None:
+                    if current_date is None:
+                        raise StatementParseError(
+                            f"No date found for transaction {''.join(buffer)}"
+                        )
+
                     txns.append(
                         ParsedTransaction(
                             date=current_date,
@@ -157,9 +162,6 @@ def parse_hsbc_pdf(path: Path) -> ParsedStatement:
                         )
                     )
                     buffer = []
-
-                    if classified.balance is not None:
-                        pending_amount = Decimal("0")
 
     if opening_balance is None or closing_balance is None:
         raise StatementParseError("No opening or closing balance found.")
