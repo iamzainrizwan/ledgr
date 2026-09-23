@@ -134,10 +134,15 @@ def get_balance(
         return total
 
 
+CHECKING_ACCOUNT_PREFIX = "accounts:checking:"
+
+
 def list_account_balances(session: Session) -> list[tuple[str, Decimal]]:
-    """All accounts and their computed balance, sorted by name."""
+    """All accounts and their computed balance — checking accounts first, then everything else alphabetically."""
     accounts = session.scalars(select(Account).order_by(Account.name))
-    return [(a.name, sum((e.amount for e in a.entries), Decimal("0"))) for a in accounts]
+    balances = [(a.name, sum((e.amount for e in a.entries), Decimal("0"))) for a in accounts]
+    balances.sort(key=lambda item: (not item[0].startswith(CHECKING_ACCOUNT_PREFIX), item[0]))
+    return balances
 
 
 def reverse_transaction(
