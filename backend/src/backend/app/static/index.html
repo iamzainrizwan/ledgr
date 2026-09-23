@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ledgr</title>
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<div class="shell">
+  <header class="topbar">
+    <div>
+      <span class="brand">ledgr</span>
+      <span class="brand-sub">double-entry ledger, statement ingestion, manual review</span>
+    </div>
+    <button id="reset-demo" class="btn btn-ghost">reset demo</button>
+  </header>
+
+  <nav class="tabs">
+    <button class="tab active" data-tab="upload">1 · upload</button>
+    <button class="tab" data-tab="review">2 · review <span id="pending-count" class="pill"></span></button>
+    <button class="tab" data-tab="balances">3 · balances</button>
+  </nav>
+  <p class="flow-hint">Steps advance automatically as you go — click a step above any time to jump back.</p>
+
+  <main class="main">
+
+    <section id="panel-upload" class="panel active">
+      <div class="card">
+        <h2>upload a statement</h2>
+        <form id="upload-form">
+          <label>
+            account name
+            <input type="text" name="account" placeholder="e.g. demo" required>
+          </label>
+          <label>
+            bank
+            <select name="bank" required>
+              <option value="hsbc">HSBC (PDF)</option>
+              <option value="revolut">Revolut (Excel)</option>
+            </select>
+          </label>
+          <label>
+            statement file
+            <input type="file" name="file" required>
+          </label>
+          <button type="submit" class="btn btn-primary">upload &amp; stage</button>
+        </form>
+        <div id="upload-result"></div>
+      </div>
+
+      <div class="card card-muted">
+        <h2>try it without your own statement</h2>
+        <p>
+          Download one of these and upload it above to see the parse →
+          reconcile → stage flow run on real file input, not just the seeded
+          data.
+        </p>
+        <p>
+          <a class="btn btn-ghost" href="/static/sample-statement.xlsx" download>
+            sample-statement.xlsx
+          </a>
+          <span class="sample-hint">Revolut — use a fresh account name (not <code>demo</code>, which is already seeded)</span>
+        </p>
+        <p>
+          <a class="btn btn-ghost" href="/static/sample-hsbc-statement.pdf" download>
+            sample-hsbc-statement.pdf
+          </a>
+          <span class="sample-hint">
+            HSBC — a real statement with all personally identifying details
+            (name, address, sort code, account number, and third parties named
+            in transaction descriptions) redacted, not just visually covered.
+            Also use a fresh account name.
+          </span>
+        </p>
+      </div>
+    </section>
+
+    <section id="panel-review" class="panel">
+      <p id="review-empty" class="empty-note" hidden>Nothing waiting for review.</p>
+      <div id="review-card" class="review-card" hidden>
+        <div class="review-progress">
+          reviewing <span id="review-index"></span> of <span id="review-total"></span>
+        </div>
+        <div class="txn-block">
+          <div class="txn-date" id="txn-date"></div>
+          <div class="txn-account" id="txn-account"></div>
+          <div class="txn-description" id="txn-description"></div>
+          <div class="txn-amount" id="txn-amount"></div>
+          <div class="txn-suggestion" id="txn-suggestion" hidden></div>
+        </div>
+        <div class="category-picker">
+          <label>
+            category
+            <select id="category-select"></select>
+          </label>
+          <input type="text" id="category-custom" class="custom-input" placeholder="custom category, e.g. liabilities" hidden>
+          <label>
+            subcategory
+            <select id="subcategory-select"></select>
+          </label>
+          <input type="text" id="subcategory-custom" class="custom-input" placeholder="custom subcategory" hidden>
+        </div>
+        <div class="review-actions">
+          <button id="skip-txn" class="btn">skip — leave uncategorised</button>
+          <button id="categorize-txn" class="btn btn-primary">categorise &amp; next</button>
+        </div>
+      </div>
+    </section>
+
+    <section id="panel-balances" class="panel">
+      <table class="balances-table">
+        <thead><tr><th>account</th><th>balance</th></tr></thead>
+        <tbody id="balances-body"></tbody>
+      </table>
+    </section>
+
+  </main>
+</div>
+<script src="/static/app.js"></script>
+</body>
+</html>
