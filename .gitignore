@@ -3,3 +3,5 @@
 priv/
 
 *.pem
+
+*.db
