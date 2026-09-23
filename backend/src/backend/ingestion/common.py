@@ -40,6 +40,11 @@ def self_validate(
 
 def check_cross_statement_continuity(
     prior_closing_balance: Decimal, next_opening_balance: Decimal
-) -> None:
-    if prior_closing_balance != next_opening_balance:
-        raise StatementSelfCheckError
+) -> Decimal:
+    """
+    Returns the gap between the two balances (zero if they already agree).
+    Deciding what to do about a nonzero gap (e.g. a skipped statement) is an
+    ingestion/orchestration concern, not a parsing concern, so this only reports
+    the discrepancy rather than raising.
+    """
+    return next_opening_balance - prior_closing_balance

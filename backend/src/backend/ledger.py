@@ -67,6 +67,10 @@ def post_transaction(
     1. Idempotency: if given an external_id that exists in a Transaction, return that Transaction
     2. At least two postings
     3. Postings must sum to exactly 0.0
+
+    Does not commit — the caller controls the transaction boundary, so a caller
+    posting several related Transactions can commit them all atomically or roll
+    back the lot on failure.
     """
     if external_id is not None:
         existing = session.scalar(
@@ -101,7 +105,7 @@ def post_transaction(
     if sum != Decimal("0"):
         raise UnbalancedTransactionError()
 
-    session.commit()
+    session.flush()
     return txn
 
 
@@ -128,6 +132,12 @@ def get_balance(
             for e in a.entries:
                 total += e.amount
         return total
+
+
+def list_account_balances(session: Session) -> list[tuple[str, Decimal]]:
+    """All accounts and their computed balance, sorted by name."""
+    accounts = session.scalars(select(Account).order_by(Account.name))
+    return [(a.name, sum((e.amount for e in a.entries), Decimal("0"))) for a in accounts]
 
 
 def reverse_transaction(

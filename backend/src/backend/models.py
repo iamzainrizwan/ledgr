@@ -38,6 +38,26 @@ class Transaction(Base):
     entries: Mapped[list["Entry"]] = relationship(back_populates="transaction")
 
 
+class PendingTransaction(Base):
+    """
+    A parsed transaction staged for review before it's categorized and posted.
+    Deleted once categorized — this is a working queue, not a record; the real
+    record of truth is Transaction/Entry once posting happens.
+    """
+
+    __tablename__ = "pending_transactions"
+
+    id: Mapped[str] = mapped_column(String, primary_key=True, default=_uuid)
+    account_name: Mapped[str] = mapped_column(String, nullable=False)
+    date: Mapped[str] = mapped_column(String, nullable=False)
+    description: Mapped[str] = mapped_column(String, nullable=False)
+    amount: Mapped[Decimal] = mapped_column(Numeric(18, 2), nullable=False)
+    external_id: Mapped[str] = mapped_column(String, nullable=False, unique=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime, default=lambda: datetime.now(timezone.utc)
+    )
+
+
 class Entry(Base):
     __tablename__ = "entries"
     __table_args__ = (CheckConstraint("amount != 0", name="entry_amount_nonzero"),)
