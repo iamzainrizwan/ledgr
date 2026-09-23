@@ -31,14 +31,14 @@ def reset_and_seed(session: Session) -> None:
         opening_balance=Decimal("1200.00"),
         closing_balance=Decimal("2042.55"),
         transactions=[
-            ParsedTransaction("01 Sep 26", "SALARY - ACME CORP", Decimal("2100.00")),
-            ParsedTransaction("02 Sep 26", "RENT PAYMENT - LANDLORD LTD", Decimal("-950.00")),
-            ParsedTransaction("03 Sep 26", "TESCO STORES 4521", Decimal("-64.30")),
-            ParsedTransaction("05 Sep 26", "NETFLIX.COM", Decimal("-12.99")),
-            ParsedTransaction("06 Sep 26", "TFL TRAVEL CHARGE", Decimal("-38.20")),
-            ParsedTransaction("09 Sep 26", "COSTA COFFEE", Decimal("-4.15")),
-            ParsedTransaction("12 Sep 26", "TESCO STORES 4521", Decimal("-57.90")),
-            ParsedTransaction("18 Sep 26", "AMAZON MARKETPLACE", Decimal("-129.91")),
+            ParsedTransaction("2026-09-01", "SALARY - ACME CORP", Decimal("2100.00")),
+            ParsedTransaction("2026-09-02", "RENT PAYMENT - LANDLORD LTD", Decimal("-950.00")),
+            ParsedTransaction("2026-09-03", "TESCO STORES 4521", Decimal("-64.30")),
+            ParsedTransaction("2026-09-05", "NETFLIX.COM", Decimal("-12.99")),
+            ParsedTransaction("2026-09-06", "TFL TRAVEL CHARGE", Decimal("-38.20")),
+            ParsedTransaction("2026-09-09", "COSTA COFFEE", Decimal("-4.15")),
+            ParsedTransaction("2026-09-12", "TESCO STORES 4521", Decimal("-57.90")),
+            ParsedTransaction("2026-09-18", "AMAZON MARKETPLACE", Decimal("-129.91")),
         ],
     )
     result_1 = stage_statement(session, DEMO_ACCOUNT, statement_1)
@@ -61,10 +61,10 @@ def reset_and_seed(session: Session) -> None:
         opening_balance=Decimal("2042.55"),
         closing_balance=Decimal("1876.11"),
         transactions=[
-            ParsedTransaction("20 Sep 26", "TESCO STORES 4521", Decimal("-41.20")),
-            ParsedTransaction("21 Sep 26", "COSTA COFFEE", Decimal("-3.80")),
-            ParsedTransaction("22 Sep 26", "TFL TRAVEL CHARGE", Decimal("-35.60")),
-            ParsedTransaction("23 Sep 26", "SQ *CORNER BAKERY", Decimal("-85.84")),
+            ParsedTransaction("2026-09-20", "TESCO STORES 4521", Decimal("-41.20")),
+            ParsedTransaction("2026-09-21", "COSTA COFFEE", Decimal("-3.80")),
+            ParsedTransaction("2026-09-22", "TFL TRAVEL CHARGE", Decimal("-35.60")),
+            ParsedTransaction("2026-09-23", "SQ *CORNER BAKERY", Decimal("-85.84")),
         ],
     )
     stage_statement(session, DEMO_ACCOUNT, statement_2)

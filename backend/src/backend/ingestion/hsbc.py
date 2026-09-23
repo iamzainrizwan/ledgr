@@ -51,7 +51,10 @@ def _extract_date(row) -> str | None:
         return None
     day, month, year = row[0], row[1], row[2]
     if day["text"].isdigit() and month["text"] in MONTHS and year["text"].isdigit():
-        return f"{int(day['text']):02d} {month['text']} {int(year['text'])}"
+        year_num = int(year["text"])
+        if year_num < 100:  # statements print two-digit years
+            year_num += 2000
+        return f"{year_num:04d}-{MONTHS[month['text']]:02d}-{int(day['text']):02d}"
     return None
 
 

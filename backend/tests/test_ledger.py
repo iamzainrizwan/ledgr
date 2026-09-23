@@ -1,10 +1,17 @@
+from datetime import date
 from decimal import Decimal
 
 import pytest
 from sqlalchemy import create_engine, func, select
 from sqlalchemy.orm import Session
 
-from backend.ledger import Posting, get_balance, get_or_create_account, post_transaction
+from backend.ledger import (
+    Posting,
+    get_balance,
+    get_or_create_account,
+    post_transaction,
+    reverse_transaction,
+)
 from backend.models import Base, Transaction
 
 
@@ -95,3 +102,16 @@ def test_idempotency(session):
     assert balance1 == get_balance(session, "Assets:Checking:Revolut")
     count = session.scalar(select(func.count()).select_from(Transaction))
     assert count == 1
+
+
+def test_reversal_keeps_original_date(session):
+    original = post_transaction(
+        session,
+        [Posting("assets:cash", Decimal("-5.00")), Posting("expenses:coffee", Decimal("5.00"))],
+        date=date(2026, 4, 30),
+    )
+
+    reversal = reverse_transaction(session, original.id)
+
+    # same day as what it corrects, so the month's totals net to zero
+    assert reversal.date == date(2026, 4, 30)

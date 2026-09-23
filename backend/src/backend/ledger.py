@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from datetime import date
 from decimal import Decimal
 from typing import Iterable, NamedTuple
 
@@ -61,6 +62,7 @@ def post_transaction(
     description: str | None = None,
     external_id: str | None = None,
     reverses_transaction_id: str | None = None,
+    date: date | None = None,
 ) -> Transaction:
     """
     Posts a balanced set of entries as one Transaction.
@@ -84,6 +86,7 @@ def post_transaction(
         description=description,
         external_id=external_id,
         reverses_transaction_id=reverses_transaction_id,
+        date=date,
     )
     session.add(txn)
     session.flush()
@@ -175,4 +178,7 @@ def reverse_transaction(
         reversal_postings,
         description=description,
         reverses_transaction_id=original_txn.id,
+        # a correction belongs to the same day as what it corrects, so
+        # per-month totals net out instead of splitting across months
+        date=original_txn.date,
     )

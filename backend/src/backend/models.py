@@ -1,10 +1,10 @@
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 from decimal import Decimal
 
-from sqlalchemy import CheckConstraint, DateTime, ForeignKey, Numeric, String
+from sqlalchemy import CheckConstraint, Date, DateTime, ForeignKey, Numeric, String
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 
@@ -28,6 +28,10 @@ class Transaction(Base):
     __tablename__ = "transactions"
     id: Mapped[str] = mapped_column(String, primary_key=True, default=_uuid)
     description: Mapped[str | None] = mapped_column(String, nullable=True)
+    # when the money moved, per the statement - not when it was posted.
+    # nullable for transactions with no statement behind them; stats fall
+    # back to created_at for those.
+    date: Mapped[date | None] = mapped_column(Date, nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime, default=lambda: datetime.now(timezone.utc)
     )

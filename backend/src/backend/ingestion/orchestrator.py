@@ -12,6 +12,7 @@ from backend.ingestion.common import (
     ParsedStatement,
     ParsedTransaction,
     check_cross_statement_continuity,
+    parse_statement_date,
 )
 from backend.ledger import Posting, get_balance, get_or_create_account, post_transaction
 from backend.models import Account, PendingTransaction, Transaction
@@ -72,6 +73,11 @@ def stage_statement(
     balance_adjustment = Decimal("0")
 
     external_ids = _external_ids_for(account_name, parsed.transactions)
+    # seed/adjustment postings have no row of their own on the statement, so
+    # they're dated to where the statement starts
+    statement_start = min(
+        (parse_statement_date(t.date) for t in parsed.transactions), default=None
+    )
 
     posted_ids = set(
         session.scalars(
@@ -112,6 +118,7 @@ def stage_statement(
                 ],
                 description="Opening balance seed",
                 external_id=f"seed:{account_name}",
+                date=statement_start,
             )
         else:
             current_balance = get_balance(session, account_name)
@@ -129,6 +136,7 @@ def stage_statement(
                         f"Balance adjustment: ledger showed {current_balance}, "
                         f"statement opens at {parsed.opening_balance}"
                     ),
+                    date=statement_start,
                 )
 
         newly_staged: list[PendingTransaction] = []
@@ -194,6 +202,7 @@ def categorize_pending(session: Session, pending_id: str, category: str) -> Tran
         ],
         description=pending.description,
         external_id=pending.external_id,
+        date=parse_statement_date(pending.date),
     )
     session.delete(pending)
     session.commit()
@@ -218,6 +227,7 @@ def categorize_pending_bulk(
                 ],
                 description=pending.description,
                 external_id=pending.external_id,
+                date=parse_statement_date(pending.date),
             )
             session.delete(pending)
             results.append(txn)

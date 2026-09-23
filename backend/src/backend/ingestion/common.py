@@ -1,3 +1,4 @@
+from datetime import date, datetime
 from decimal import Decimal
 from typing import NamedTuple
 
@@ -8,6 +9,22 @@ class ParsedTransaction(NamedTuple):
     date: str  # ISO DATE, "YYYY-MM-DD"
     description: str
     amount: Decimal
+
+
+def parse_statement_date(value: str) -> date:
+    """
+    Parses a statement date into a real date. ISO ("2026-09-01") is the
+    documented format; "01 Sep 26" / "01 Sep 2026" is also accepted because
+    HSBC's parser emitted that before it was normalised, and pending rows
+    staged back then still carry it.
+    """
+    value = value.strip()
+    for fmt in ("%Y-%m-%d", "%d %b %y", "%d %b %Y"):
+        try:
+            return datetime.strptime(value, fmt).date()
+        except ValueError:
+            continue
+    raise ValueError(f"Unrecognised statement date: {value!r}")
 
 
 class ParsedStatement(NamedTuple):

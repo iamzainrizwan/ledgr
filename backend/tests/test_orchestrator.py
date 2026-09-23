@@ -1,7 +1,8 @@
+from datetime import date
 from decimal import Decimal
 
 import pytest
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, select
 from sqlalchemy.orm import Session
 
 from backend.ingestion.common import ParsedStatement, ParsedTransaction
@@ -13,7 +14,7 @@ from backend.ingestion.orchestrator import (
     suggest_category,
 )
 from backend.ledger import get_balance
-from backend.models import Base
+from backend.models import Base, Transaction
 
 
 @pytest.fixture
@@ -104,3 +105,46 @@ def test_categorize_bulk(session):
 
     assert len(txns) == 2
     assert get_balance(session, _account_name("acc6")) == Decimal("70.00")
+
+
+def test_categorized_transaction_keeps_statement_date(session):
+    stmt = _stmt("100.00", "80.00", [ParsedTransaction("2026-01-15", "Shop", Decimal("-20.00"))])
+    result = stage_statement(session, "acc1", stmt)
+
+    txn = categorize_pending(session, result.newly_staged[0].id, "expenses:shop")
+
+    # the day the money moved, not the day it was categorized
+    assert txn.date == date(2026, 1, 15)
+
+
+def test_bulk_categorized_transactions_keep_statement_dates(session):
+    stmt = _stmt(
+        "100.00",
+        "70.00",
+        [
+            ParsedTransaction("2026-01-05", "A", Decimal("-10.00")),
+            ParsedTransaction("2026-02-09", "B", Decimal("-20.00")),
+        ],
+    )
+    result = stage_statement(session, "acc1", stmt)
+
+    txns = categorize_pending_bulk(
+        session, {p.id: "expenses:misc" for p in result.newly_staged}
+    )
+
+    assert sorted(t.date for t in txns) == [date(2026, 1, 5), date(2026, 2, 9)]
+
+
+def test_opening_seed_is_dated_to_statement_start(session):
+    stmt = _stmt(
+        "100.00",
+        "70.00",
+        [
+            ParsedTransaction("2026-03-10", "Later", Decimal("-10.00")),
+            ParsedTransaction("2026-03-02", "Earlier", Decimal("-20.00")),
+        ],
+    )
+    stage_statement(session, "acc1", stmt)
+
+    seed = session.scalar(select(Transaction).where(Transaction.description == "Opening balance seed"))
+    assert seed.date == date(2026, 3, 2)
