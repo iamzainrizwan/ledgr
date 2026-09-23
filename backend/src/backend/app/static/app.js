@@ -320,7 +320,9 @@ function renderCategories(categories) {
   const max = Math.max(...categories.map((c) => Number(c.total)), 0);
   list.innerHTML = categories
     .map((c) => {
-      const pct = c.share == null ? "" : `${Math.round(Number(c.share) * 100)}%`;
+      const share = c.share == null ? null : Number(c.share) * 100;
+      // a real but tiny share reads as "<1%", not a misleading "0%"
+      const pct = share == null ? "" : share > 0 && share < 0.5 ? "<1%" : `${Math.round(share)}%`;
       const width = max ? (Number(c.total) / max) * 100 : 0;
       const row = `
         <span class="cat-name">${escapeHtml(c.name)}</span>
