@@ -20,6 +20,7 @@
     <button class="tab active" data-tab="upload">1 · upload</button>
     <button class="tab" data-tab="review">2 · review <span id="pending-count" class="pill"></span></button>
     <button class="tab" data-tab="balances">3 · balances</button>
+    <button class="tab" data-tab="stats">4 · stats</button>
   </nav>
   <p class="flow-hint">Steps advance automatically as you go — click a step above any time to jump back.</p>
 
@@ -113,6 +114,62 @@
         <thead><tr><th>account</th><th>balance</th></tr></thead>
         <tbody id="balances-body"></tbody>
       </table>
+      <div class="step-next">
+        <button id="to-stats" class="btn btn-primary">next · stats</button>
+      </div>
+    </section>
+
+    <section id="panel-stats" class="panel">
+      <div class="stats-head">
+        <h2 class="stats-title" id="stats-title">stats</h2>
+        <label class="month-picker">
+          month
+          <select id="month-select"></select>
+        </label>
+      </div>
+
+      <div class="summary">
+        <div class="summary-card">
+          <div class="summary-label">spent</div>
+          <div class="summary-value" id="sum-spending"></div>
+          <div class="summary-delta" id="delta-spending"></div>
+        </div>
+        <div class="summary-card">
+          <div class="summary-label">earned</div>
+          <div class="summary-value" id="sum-income"></div>
+          <div class="summary-delta" id="delta-income"></div>
+        </div>
+        <div class="summary-card">
+          <div class="summary-label">net</div>
+          <div class="summary-value" id="sum-net"></div>
+          <div class="summary-delta" id="savings-rate"></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>where it went</h2>
+        <p id="categories-empty" class="empty-note" hidden>No spending in this period.</p>
+        <ul class="cat-list" id="cat-list"></ul>
+      </div>
+
+      <div class="card">
+        <h2>month by month</h2>
+        <div class="chart-legend">
+          <span class="key key-income"></span>earned
+          <span class="key key-spending"></span>spent
+        </div>
+        <div id="month-chart" class="month-chart"></div>
+        <p class="chart-hint">Click a month to see it above.</p>
+      </div>
+
+      <div class="card">
+        <h2>balances</h2>
+        <ul class="bal-list" id="stats-balances"></ul>
+      </div>
+
+      <p class="synthetic-note" id="synthetic-note" hidden>
+        The <code>demo</code> account's June–September history is synthetic, made up to give the stats something to show.
+      </p>
     </section>
 
   </main>

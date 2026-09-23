@@ -42,7 +42,7 @@ body{
 .tabs{display:flex;gap:4px;padding:0 24px;border-bottom:1px solid var(--rule);background:var(--surface);}
 .tab{
   font-family:inherit;font-size:13px;color:var(--text-dim);background:none;border:none;
-  border-bottom:2px solid transparent;padding:10px 14px;cursor:pointer;
+  border-bottom:2px solid transparent;padding:10px 14px;cursor:pointer;white-space:nowrap;
 }
 .tab:hover{color:var(--text);}
 .tab.active{color:var(--ink);border-bottom-color:var(--ink);}
@@ -120,4 +120,80 @@ tr:last-child td{border-bottom:none;}
 
 @media (max-width:640px){
   .review-card{max-width:none;padding:18px;}
+}
+
+/* ---- balances -> stats ---- */
+.step-next{display:flex;justify-content:flex-end;margin-top:16px;}
+
+/* ---- stats ---- */
+.stats-head{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:16px;}
+.stats-title{margin:0;font-family:Georgia,'Source Serif 4',serif;font-size:24px;font-weight:700;color:var(--ink);}
+.month-picker{font-size:12px;color:var(--text-dim);}
+.month-picker select{
+  display:block;margin-top:4px;padding:8px 10px;font-size:13px;font-family:inherit;min-width:180px;
+  background:var(--surface);color:var(--text);border:1px solid var(--rule);border-radius:var(--radius);
+}
+
+.summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-bottom:16px;}
+.summary-card{background:var(--surface);border:1px solid var(--rule);border-radius:var(--radius);padding:16px 18px;}
+.summary-label{font-size:11px;text-transform:uppercase;letter-spacing:0.04em;color:var(--text-dim);}
+.summary-value{font-family:Georgia,'Source Serif 4',serif;font-size:26px;margin:4px 0 2px;}
+.summary-delta{font-size:12px;color:var(--text-dim);min-height:18px;}
+
+.cat-list{list-style:none;margin:0;padding:0;}
+.cat-list > li + li{border-top:1px solid var(--rule);}
+.cat-row{
+  display:grid;grid-template-columns:minmax(90px,140px) 1fr 90px 40px;align-items:center;gap:12px;
+  padding:9px 0;font-size:13px;
+}
+.cat-name{font-weight:600;overflow-wrap:anywhere;}
+.cat-bar{height:10px;background:var(--surface-2);border-radius:var(--radius);overflow:hidden;}
+.cat-bar span{display:block;height:100%;background:var(--ink);}
+.cat-amount{text-align:right;font-variant-numeric:tabular-nums;}
+.cat-share{text-align:right;color:var(--text-dim);font-size:12px;font-variant-numeric:tabular-nums;}
+.cat-details summary{cursor:pointer;list-style:none;}
+.cat-details summary::-webkit-details-marker{display:none;}
+.cat-details summary .cat-name::after{content:" ▸";color:var(--text-dim);font-weight:400;}
+.cat-details[open] summary .cat-name::after{content:" ▾";}
+.cat-subs{list-style:none;margin:0 0 8px;padding:0 0 0 14px;border-left:2px solid var(--rule);}
+.cat-subs li{display:flex;justify-content:space-between;padding:4px 0;font-size:12px;color:var(--text-dim);}
+
+.chart-legend{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text-dim);margin-bottom:10px;}
+.key{display:inline-block;width:10px;height:10px;border-radius:1px;margin-left:8px;}
+.key:first-child{margin-left:0;}
+.key-income{background:var(--brass);}
+.key-spending{background:var(--ink);}
+.month-chart svg{display:block;width:100%;height:180px;}
+.month-chart .baseline{stroke:var(--rule);stroke-width:1;vector-effect:non-scaling-stroke;}
+.month-chart .hit{fill:transparent;}
+.month-chart .bar-income{fill:var(--brass);opacity:0.55;}
+.month-chart .bar-spending{fill:var(--ink);opacity:0.55;}
+.month-chart .month{cursor:pointer;outline:none;}
+.month-chart .month:hover .bar-income,.month-chart .month:hover .bar-spending,
+.month-chart .month.selected .bar-income,.month-chart .month.selected .bar-spending{opacity:1;}
+.month-chart .month:focus-visible .hit{fill:var(--ink-glow);}
+.chart-labels{display:flex;margin-top:6px;}
+.chart-labels span{flex:1;text-align:center;font-size:12px;color:var(--text-dim);}
+.chart-labels span.selected{color:var(--ink);font-weight:600;}
+.chart-hint{font-size:12px;margin:10px 0 0;}
+
+.bal-list{list-style:none;margin:0;padding:0;}
+.bal-list li{display:flex;justify-content:space-between;padding:8px 0;font-size:13px;}
+.bal-list li + li{border-top:1px solid var(--rule);}
+.bal-list li > span:last-child{font-family:Georgia,'Source Serif 4',serif;font-size:15px;}
+
+.synthetic-note{font-size:12px;color:var(--text-dim);margin:8px 0 0;}
+.synthetic-note code{background:var(--surface-2);padding:1px 5px;border-radius:2px;}
+
+@media (max-width:640px){
+  .summary{grid-template-columns:1fr;}
+  .summary-card{display:grid;grid-template-columns:1fr auto;align-items:center;column-gap:12px;}
+  .summary-value{grid-row:1 / span 2;grid-column:2;margin:0;font-size:22px;}
+  /* four steps fit on one row: equal-width tabs, tighter padding */
+  .tabs{padding:0 8px;gap:0;}
+  .tab{flex:1;padding:10px 4px;font-size:12px;}
+  .cat-row{grid-template-columns:1fr auto;row-gap:6px;}
+  .cat-bar{grid-column:1 / -1;grid-row:2;}
+  .cat-share{display:none;}
+  .month-picker, .month-picker select{width:100%;}
 }
