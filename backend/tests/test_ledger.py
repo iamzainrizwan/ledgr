@@ -4,8 +4,8 @@ import pytest
 from sqlalchemy import create_engine, func, select
 from sqlalchemy.orm import Session
 
-from ledger import Posting, get_balance, get_or_create_account, post_transaction
-from models import Base, Transaction
+from backend.ledger import Posting, get_balance, get_or_create_account, post_transaction
+from backend.models import Base, Transaction
 
 
 @pytest.fixture

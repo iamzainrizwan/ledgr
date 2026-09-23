@@ -6,7 +6,7 @@ from typing import Iterable, NamedTuple
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from models import Account, Entry, Transaction
+from backend.models import Account, Entry, Transaction
 
 
 class Posting(NamedTuple):

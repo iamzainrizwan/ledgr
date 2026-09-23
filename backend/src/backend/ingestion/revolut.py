@@ -2,7 +2,7 @@ from decimal import Decimal
 from pathlib import Path
 
 import pandas as pd
-from common import ParsedStatement, ParsedTransaction, StatementParseError
+from backend.ingestion.common import ParsedStatement, ParsedTransaction, StatementParseError
 
 
 def parse_revolut_excel(path: Path) -> ParsedStatement:

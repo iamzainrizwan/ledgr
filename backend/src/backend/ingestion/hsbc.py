@@ -4,7 +4,7 @@ from decimal import Decimal
 from pathlib import Path
 
 import pdfplumber
-from common import (
+from backend.ingestion.common import (
     ParsedStatement,
     ParsedTransaction,
     StatementParseError,
@@ -151,7 +151,7 @@ def parse_hsbc_pdf(path: Path) -> ParsedStatement:
                 if classified.amount is not None:
                     if current_date is None:
                         raise StatementParseError(
-                            f"No date found for transaction {''.join(buffer)}"
+                            f"No date found for transaction {' '.join(buffer)}"
                         )
 
                     txns.append(
