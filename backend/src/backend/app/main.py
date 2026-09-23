@@ -3,7 +3,7 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Literal
 
-from fastapi import Depends, FastAPI, File, Form, HTTPException, UploadFile
+from fastapi import Depends, FastAPI, File, Form, HTTPException, Query, UploadFile
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
@@ -24,6 +24,7 @@ from backend.ingestion.orchestrator import (
 )
 from backend.ingestion.revolut import parse_revolut_excel
 from backend.ledger import list_account_balances
+from backend.stats import compute_stats
 from backend.models import Account, PendingTransaction
 
 STATIC_DIR = Path(__file__).parent / "static"
@@ -149,6 +150,15 @@ def accounts(session: Session = Depends(get_session)):
         {"name": name, "balance": str(balance)}
         for name, balance in list_account_balances(session)
     ]
+
+
+@app.get("/stats")
+def stats(
+    month: str | None = Query(None, pattern=r"^\d{4}-(0[1-9]|1[0-2])$"),
+    session: Session = Depends(get_session),
+):
+    """Income, spending, net and spend by category for one month (YYYY-MM), or all time."""
+    return compute_stats(session, month)
 
 
 @app.post("/demo/reset")

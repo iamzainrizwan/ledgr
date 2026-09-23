@@ -63,3 +63,14 @@ def test_reingest_same_statement_is_noop(client):
     resp = _ingest(client, "app-test-2")
 
     assert resp.json()["newly_staged"] == []
+
+
+def test_stats_endpoint(client):
+    body = client.get("/stats").json()
+    assert set(body) >= {"months", "totals", "categories", "by_month", "balances"}
+    month = body["months"][-1]
+    assert client.get("/stats", params={"month": month}).json()["month"] == month
+
+
+def test_stats_rejects_malformed_month(client):
+    assert client.get("/stats", params={"month": "2026-13"}).status_code == 422
