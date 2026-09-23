@@ -1,8 +1,23 @@
 # ledgr
-personal finance system. currently 3 UK banks - HSBC & Revolut, double-entry ledger + statement ingestion + (WIP) insights layer on top
+
+personal finance system: a double-entry ledger, statement ingestion for HSBC (PDF) and Revolut (Excel), and a stats view on top.
+
+**[live demo →](https://ledgr-demo.fly.dev)** upload a statement (there are sample files on the upload page), review each transaction, check balances, then see where the money went by category and month. the demo account's history is synthetic, and "reset demo" puts it back.
+
 ## ledger core
-hierarchal accounts, immutable entires, balance = query the db and calculate, instead of a stored field. balanced-entry invariant enforced on post and posts are idempotent via an external id <- means we use reversal instead of update/delete
+hierarchical accounts (`expenses:groceries`, `income:salary`), immutable entries, and balances computed by querying the entries rather than stored in a field. the balanced-entry invariant is enforced when a transaction posts, and posts are idempotent via an external id, which is why corrections are reversals rather than updates or deletes.
+
 ## ingestion
-HSBC pdf and Revolut Excel/.csv implemented, both with ways to self-validate against the statement's own printed totals. 
-## insights
-currently planned to have automatic classification, alongside a manual categorisation UI for user to edit incorrect classification or step in for classes that the system doesnt know yet. then, the user would be able to see their stats across multiple accounts, see spending anomalies, and export an anonymised .csv version of their transactions to then be able to use with LLMs.  
+HSBC PDF and Revolut Excel/.csv parsers, each validating a statement against its own printed opening/closing balance before anything posts. consecutive statements are also checked for continuity against the ledger's balance, and any gap is posted as an explicit reconciliation adjustment instead of silently absorbed.
+
+## review
+parsed transactions are staged, not posted. each one gets a category suggestion from ledger history (what that description was filed under last time) and is confirmed one at a time or in bulk, at which point it posts into the ledger with its statement date.
+
+## stats
+income, spending and net for any month or all time, spend by category (subcategories roll up), the change vs last month, and a month-by-month chart. derived by query every time, same as balances.
+
+## what's next
+automatic categorisation, as a stretch.
+
+## running it
+see [`backend/README.md`](backend/README.md).
