@@ -404,3 +404,15 @@ loadPending();
 // (activateTab("stats") reads selectedMonth, declared further up)
 const initialTab = location.hash.replace("#", "");
 if (["upload", "review", "balances", "stats"].includes(initialTab)) activateTab(initialTab);
+
+// ---- date touch ----
+function isNov14(d = new Date(), q = location.search) {
+  return /[?&]bday\b/.test(q) || (d.getMonth() === 10 && d.getDate() === 14);
+}
+if (isNov14()) {
+  const sub = $(".brand-sub");
+  if (sub) {
+    sub.textContent = "happy birthday zain. the books balance.";
+    sub.style.color = "var(--brass)";
+  }
+}
